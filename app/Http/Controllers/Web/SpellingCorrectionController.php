@@ -37,21 +37,48 @@ class SpellingCorrectionController extends Controller
 
         // Ambil path lengkap file PDF
         $pdfFullPath = Storage::path($filePath);
-        
+
         // Proses file PDF untuk mengekstrak teks
         $text = Pdf::getText($pdfFullPath, '/opt/homebrew/bin/pdftotext');
-      
+
 
         // Menambahkan spasi di antara kata-kata yang berdekatan
         // $cleanedText = preg_replace('/(?<=[a-z])(?=[A-Z])/', ' ', $cleanedText);
         // dd($cleanedText);
 
         // Koreksi ejaan
-        $processedText = $this->textProcessingService->preprocessText($text);
+        // $processedText = $this->textProcessingService->preprocessText($text);
 
         // Koreksi ejaan
-        $correctedText = $this->textProcessingService->spellCheck($processedText);
+        // $correctedText = $this->textProcessingService->spellCheck($text);
 
+
+        // // Generate PDF baru dengan teks yang sudah dikoreksi
+        // $pdf = new Dompdf();
+        // $pdf->loadHtml($correctedText);
+        // $pdf->setPaper('A4', 'portrait');
+        // $pdf->render();
+
+        // // Simpan PDF hasil koreksi
+        // $outputPath = storage_path('app/corrected_' . time() . '.pdf');
+        // File::put($outputPath, $pdf->output());
+
+        // Perbaikan mulai dari sini
+        $pages = preg_split('/\n\s*\n/', $text); // Misalnya, dua newline sebagai pemisah halaman
+
+        // dd($pages);
+        
+        $correctedPages = [];
+        foreach ($pages as $page) {
+            // Lakukan koreksi pada setiap halaman
+            $correctedPages[] = $this->textProcessingService->spellCheck($page);
+        }
+
+        dd($correctedPages);
+        // Menggabungkan halaman yang sudah dikoreksi
+        // $correctedText = implode("\n\n", $correctedPages);
+        $correctedText = implode("<div style='page-break-after: always;'></div>", $correctedPages);
+        // dd($correctedText);
 
         // Generate PDF baru dengan teks yang sudah dikoreksi
         $pdf = new Dompdf();

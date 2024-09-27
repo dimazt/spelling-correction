@@ -27,23 +27,50 @@ class InsertGeneralWord extends Command
 
         $fileContent = Storage::get($filePath);
 
-        // Pisahkan setiap baris menjadi array kata
-        // $words = explode(PHP_EOL, $fileContent);
+        // Decode JSON menjadi array
         $words = json_decode($fileContent);
-        // dd($words);
+        if ($words === null) {
+            $this->error("Failed to decode JSON.");
+            return;
+        }
 
         $combinedData = [];
 
         foreach ($words as $word => $details) {
             $synonyms = implode(' ', $details->sinonim); // Ambil sinonim dan gabungkan menjadi string
-            $combinedData[] = $word . ' ' . $synonyms; // Gabungkan kata dan sinonim
+            $combinedData[] = trim($word . ' ' . $synonyms); // Gabungkan kata dan sinonim
         }
 
+        // Hapus duplikat
+        // $combinedData = array_unique($combinedData);
+
+        // // Gabungkan semua elemen menjadi satu string
+        // $combinedString = implode(' ', $combinedData);
+
+        // // Pisahkan kata-kata
+        // $words = preg_split('/[\s\n]+/', $combinedString);
+
+        // // Menghapus kata yang kosong setelah pemisahan
+        // $words = array_filter(array_map('trim', $words));
+
+        // // Jika diperlukan, konversi ke lowercase
+        // $words = array_map('strtolower', $words);
+
+        // // Hapus duplikat lagi setelah konversi ke lowercase
+        // $words = array_unique($words);
+        // $words = array_map(function($word) {
+        //     return trim(preg_replace('/[()]/', '', $word)); // Hapus tanda kurung dan trim whitespace
+        // }, $words);
+        // $combinedData = array_unique($combinedData);
+        // // Urutkan kata
+        // sort($words);
+
+
         // Menggabungkan semua kata dan sinonim menjadi satu string
-        $finalString = implode('; ', $combinedData); 
+        // $finalString = implode('; ', $combinedData);
 
         // Simpan ke file atau database
-        $this->saveToFile($combinedData);
+        $this->saveToFile($combinedData); // Simpan hasil akhir ke file
         // $this->saveToDatabase($filteredWords); // Jika ingin menyimpan ke database
 
         $this->info('Common words imported successfully!');
@@ -70,6 +97,7 @@ class InsertGeneralWord extends Command
 
         return true;
     }
+
 
     // Fungsi untuk menyimpan ke file
     private function saveToFile(array $words)

@@ -15,11 +15,27 @@ class TextProcessingService
         $this->indonesianWords = $this->loadIndonesianWords();
         $this->comparisonService = new StringComparisonService();
     }
-
-    public function preprocessText($text)
+    public function preprocessText($text, &$symbols, &$capitalization)
     {
-        // Menghapus karakter khusus dan simbol yang tidak diperlukan
-        $text = preg_replace('/[^a-zA-Z\s]/', '', $text);
+        // Simpan simbol dan posisinya relatif terhadap kata
+        preg_match_all('/[^a-zA-Z\s]/', $text, $matches, PREG_OFFSET_CAPTURE);
+
+        foreach ($matches[0] as $match) {
+            $symbols[$match[1]] = $match[0]; // Simpan simbol dengan posisi awalnya
+        }
+
+        // Pisahkan kata-kata dan simpan informasi kapitalisasi
+        $words = preg_split('/\s+/', $text);
+        foreach ($words as $index => $word) {
+            // Pastikan $word tidak kosong sebelum mengakses huruf pertamanya
+            if (strlen($word) > 0) {
+                // Simpan informasi kapitalisasi (true untuk huruf besar, false untuk huruf kecil)
+                $capitalization[$index] = ctype_upper($word[0]);
+            } else {
+                // Jika kata kosong, simpan false sebagai default
+                $capitalization[$index] = false;
+            }
+        }
 
         // Mengganti banyak spasi dengan satu spasi
         $text = preg_replace('/\s+/', ' ', $text);
@@ -28,49 +44,95 @@ class TextProcessingService
         return trim($text);
     }
 
+
+
     public function spellCheck($text)
     {
+        // Simpan simbol dan posisinya
+        $symbols = [];
+        $capitalization = [];
+        $textWithoutSymbols = $this->preprocessText($text, $symbols, $capitalization);
 
-        $words = explode(' ', strtolower($text));
+        // Pisahkan kata-kata untuk dicek ejaannya
+        $words = explode(' ', strtolower($textWithoutSymbols));
         $correctedWords = [];
+        $currentIndex = 0;
 
-        foreach ($words as $word) {
-            $correctedWords[] = $this->correctWord($word);
+        foreach ($words as $index => $word) {
+            // Koreksi kata
+            $correctedWord = $this->correctWord($word);
+
+            // Terapkan kapitalisasi kembali
+            if ($capitalization[$index]) {
+                $correctedWord = ucfirst($correctedWord); // Huruf pertama kapital
+            }
+
+            $correctedWords[] = $correctedWord;
+
+            // Periksa posisi dari kata asli untuk menambahkan simbol
+            $originalPosition = strpos($text, $word, $currentIndex); // Cari posisi asli kata
+            $currentIndex = $originalPosition + strlen($word); // Update posisi setelah kata
+
+            // Tambahkan simbol setelah kata yang sudah dikoreksi
+            while (isset($symbols[$currentIndex])) {
+                $correctedWords[] = $symbols[$currentIndex];
+                unset($symbols[$currentIndex]); // Hapus simbol setelah digunakan
+                $currentIndex++; // Perbarui posisi untuk simbol berikutnya
+            }
         }
 
-
+        // Gabungkan kata-kata yang telah dikoreksi dan simbol
         return implode(' ', $correctedWords);
     }
+
+
+
+
     protected function correctWord($word)
     {
-        $kbbi = array_map('strtolower', array: $this->indonesianWords); // Ambil kata-kata KBBI dan ubah ke lowercase
+        $kbbi = array_map('strtolower', $this->indonesianWords); // Ambil kata-kata KBBI dan ubah ke lowercase
+
         // Abaikan kata yang terlalu pendek
         if (strlen($word) < 3) {
             return $word;
         }
-
         if (in_array($word, $kbbi)) {
+            // dump($word);
             return $word;
         }
 
         $lowestDistance = PHP_INT_MAX; // Jarak terendah
         $closestWord = $word; // Kata terdekat
 
+        $results = [];
         foreach ($kbbi as $targetWord) {
-            // $distance = levenshtein(strtolower($word), strtolower($targetWord));
             $result = $this->comparisonService->getDistanceAndSimilarity($word, $targetWord);
+            if($word=="levenstein"){
+                dump($result);
+            }
             // Jika jarak lebih kecil dari yang terendah dan sesuai dengan batas
-            if ($result['similarity'] >= 80) {
-                $lowestDistance = $result['distance'];
-                $closestWord = $targetWord;
+            if ($result['distance'] <= 2 && $result['similarity'] >= 60) {
+                $results[] = [
+                    "distance" => $result['distance'],
+                    "replacement_word" => $targetWord,
+                    "similarity" => $result['similarity']
+                ];
+            }
+        }
+        if (!empty($results)) {
+            foreach ($results as $result) {
+                if ($result['distance'] <= 1 && $result['similarity'] >= 80) {
+                    return $result['replacement_word'];
+                }
             }
         }
 
-        // if ($lowestDistance > 0 && $lowestDistance <= 3)
-        //     echo "Kata: $word, koreksi: $closestWord \n";
         // Menetapkan ambang batas jarak untuk akurasi
-        return $lowestDistance <= 3 ? $closestWord : $word; // Kembalikan kata terdekat atau kata asli
+        return $word;
     }
+
+
+
     // protected function correctWord($content)
     // {
     //     $kbbi = array_map('strtolower', $this->indonesianWords); // Ambil kata-kata KBBI dan ubah ke lowercase
@@ -160,7 +222,7 @@ class TextProcessingService
         return $matrix[$len1][$len2];
     }
 
-    protected function loadIndonesianWords()
+    public function loadIndonesianWords()
     {
         $filePath = 'kbbi/common_words.txt';
         // $filePath = 'kbbi/indonesian-words.txt';
@@ -169,7 +231,35 @@ class TextProcessingService
             throw new \Exception("File not found: $filePath");
         }
 
+        // Membaca konten file
         $fileContent = Storage::get($filePath);
-        return array_filter(array_map('trim', explode(' ', $fileContent)));
+
+        // Menggunakan preg_split untuk memisahkan kata berdasarkan spasi dan newline
+        $words = preg_split('/[\s\n]+/', $fileContent);
+
+        // Menghapus kata yang kosong setelah pemisahan
+        // $words = array_filter(array_map('trim', $words));
+        // // sort($words);
+
+        // // Jika diperlukan, konversi ke lowercase
+        // $words = array_map('strtolower', $words);
+
+        // $words = preg_split('/[\s\n]+/', $combinedString);
+
+        // Menghapus kata yang kosong setelah pemisahan
+        $words = array_filter(array_map('trim', $words));
+
+        // Jika diperlukan, konversi ke lowercase
+        $words = array_map('strtolower', $words);
+
+        // Hapus duplikat lagi setelah konversi ke lowercase
+        $words = array_unique($words);
+        $words = array_map(function($word) {
+            return trim(preg_replace('/[()]/', '', $word)); // Hapus tanda kurung dan trim whitespace
+        }, $words);
+        $words = array_unique($words);
+        // Urutkan kata
+        sort($words);
+        return $words;
     }
 }

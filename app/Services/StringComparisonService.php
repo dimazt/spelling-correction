@@ -42,6 +42,7 @@ class StringComparisonService
     public function calculateSimilarity($s1, $s2)
     {
         $distanceMatrix = $this->levenshteinDistance($s1, $s2);
+        // $distanceMatrix = $this->levenshteinDistance($s1, $s2);
         $distance = $distanceMatrix[strlen($s1)][strlen($s2)];
         $maxLength = max(strlen($s1), strlen($s2));
 
