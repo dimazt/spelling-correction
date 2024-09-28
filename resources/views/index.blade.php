@@ -6,13 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Home') | Spelling Correction</title>
 
-    <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="{{asset('assets/vendor/fontawesome-free/css/all.min.css')}}" rel="stylesheet" type="text/css">
     <link
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
 
     <!-- Custom styles for this template-->
-    <link href="assets/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="{{asset('assets/css/sb-admin-2.min.css')}}" rel="stylesheet">
     <style>
         .background-gradient {
             background: linear-gradient(to bottom, #2c73d2, #0081cf, #0089ba);
@@ -49,10 +49,11 @@
 <body>
     <div class="container p-3 shadow" style="background-color: #d4e5ed;">
         <header>
+            <!-- JUDUL -->
             <div class="background-gradient p-2">
                 <div class="row">
                     <div class="col-2">
-                        <img style="width: 120px; " src="/assets/logo.png" alt="">
+                        <img style="width: 120px; " src="{{asset('assets/logo.png')}}" alt="">
                     </div>
                     <div class="col-9" style="text-align: center;">
                         <strong>
@@ -71,8 +72,8 @@
             <div id="navbar" class="btn-group mt-2">
                 <a href="{{ route('home') }}" class="btn btn-primary {{$active_page == "home" ? 'active' : ''}}"
                     aria-current="page">Home</a>
-                <a href="{{ route('upload') }}" class="btn btn-primary {{$active_page == "upload" ? 'active' : ''}}"
-                    aria-current="page">Correction</a>
+                <a href="{{ route('training') }}" class="btn btn-primary {{$active_page == "training" ? 'active' : ''}}"
+                    aria-current="page">Training</a>
 
             </div>
         </header>

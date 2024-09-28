@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Services\Levenstein\DataPreparationService;
-use App\Services\Levenstein\DataProcessingService;
+use App\Services\SpellingCorrection\DataPreparationService;
+use App\Services\SpellingCorrection\DataProcessingService;
 use App\Services\TextProcessingService;
 use File;
 use Illuminate\Http\Request;
@@ -49,13 +49,12 @@ class SpellingCorrection2Controller extends Controller
             $correctedPages[] = $this->processing->correctSpellingWithStructureAndCase($page, $kbbiWords);
             // $correctedPages[] = $this->textProcessingService->spellCheck($page);
         }
-
+        $correctedText = implode("\n\n", $correctedPages);
         // dd($correctedPages);
         // dd($correctedPages);
         // Menggabungkan halaman yang sudah dikoreksi
-        // $correctedText = implode("\n\n", $correctedPages);
-        $correctedText = implode("<div style='page-break-after: always;'></div>", $correctedPages);
-        // dd($
+        // $correctedText = implode("<div style='page-break-after: always;'></div>", $correctedPages);
+        // dd($correctedText);
         // 5. Simpan hasil koreksi ke PDF baru
 
         $outputPdfPath = $this->saveToPdf($correctedText);
@@ -67,7 +66,7 @@ class SpellingCorrection2Controller extends Controller
     private function extractTextFromPdf($filePath)
     {
         $pdfFullPath = Storage::path($filePath);
-        return Pdf::getText($pdfFullPath, '/opt/homebrew/bin/pdftotext');
+        return Pdf::getText($pdfFullPath, env('PDF_TO_TEXT', null));
     }
 
     private function saveToPdf($correctedLines)

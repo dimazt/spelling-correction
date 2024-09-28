@@ -2,10 +2,12 @@
 
 namespace Tests\Unit;
 
-use App\Services\Levenstein\DataProcessingService;
+use App\Services\SpellingCorrection\Algorithms\BothAlgorithm;
+use App\Services\SpellingCorrection\Algorithms\Levenshtein;
+use App\Services\SpellingCorrection\Algorithms\Similarity;
+use App\Services\SpellingCorrection\DataPreparationService;
+use App\Services\SpellingCorrection\DataProcessingService;
 use App\Services\TextProcessingService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class DataProcessingTest extends TestCase
@@ -23,20 +25,50 @@ class DataProcessingTest extends TestCase
     public function testToken()
     {
         $text = "ini adalah, sebuah text";
-        $token = $this->service->tokenizeWithPunctuation($text);
+        $token = DataPreparationService::tokenizeWithPunctuation($text);
+        $this->assertEquals([
+            "ini",
+            "adalah",
+            ",",
+            "sebuah",
+            "text"
+        ], $token);
     }
 
-    public function testCorrection(){
+    public function testCorrection()
+    {
         $kbbi = (new TextProcessingService())->loadIndonesianWords();
-        $text = "ini adalah, sebuah text";
-        $correction = $this->service->correctWord("ejan",$kbbi);
-        dump($correction); // hasilnya kesalehan
+        $correction = BothAlgorithm::correctWord("kemudan", $kbbi);
+        $this->assertEquals('kemudian', $correction);
     }
-    public function testDistanceAndSimilarity(){
+    public function testDistanceAndSimilarity()
+    {
+        $correction = BothAlgorithm::getDistanceAndSimilarity("kemudin", "kemudian");
+        $this->assertObjectHasProperty('distance', $correction);
+        $this->assertObjectHasProperty('similarity', $correction);
+        $this->assertObjectHasProperty('logs', $correction);
+    }
+    public function testDistance()
+    {
         $kbbi = (new TextProcessingService())->loadIndonesianWords();
-        $text = "ini adalah, sebuah text";
-        $correction = $this->service->getDistanceAndSimilarity("kesalhan","kesalehan");
-        dd($correction); // 
+        $correction = (new DataProcessingService())->correctWordWithCase(
+            "kemudin",
+            $kbbi,
+            'levenshtein'
+        );
+        $this->assertEquals('kemudi', $correction);
+    }
+    public function testLevenshteinDistance()
+    {
+        $kbbi = (new TextProcessingService())->loadIndonesianWords();
+        $result = Levenshtein::manualLevenshteinWithLog('legendaris','lenegdi');
+        $result2 = Levenshtein::manualLevenshteinWithLog('lenegdi','legendaris');
+        // $result2 = Similarity::processAlgorithmSimilarity('kemudin','kemudian');
+        dump($result->distance,$result2->distance);
+        dump($result->matrix,$result2->matrix);
+        dump($result->similarity,$result2->similarity);
+        dd($result->logs,$result2->logs);
+        // $this->assertEquals('kemudi', $correction);
     }
 
 }

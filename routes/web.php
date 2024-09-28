@@ -5,11 +5,11 @@ use App\Http\Controllers\Web\SpellingCorrectionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('index', ['active_page' => 'home']);
+    return view('home_page', ['active_page' => 'home']);
 })->name('home');
-Route::get('/upload', function () {
-    return view('welcome', ['active_page' => 'upload']); // buat form upload di view
-})->name('upload');
+Route::get('/training', function () {
+    return view('training_page', ['active_page' => 'training']); // buat form upload di view
+})->name('training');
 
 Route::post('/upload', action: [SpellingCorrection2Controller::class, 'upload'])->name('upload');
 // Route::post('/upload', action: [SpellingCorrectionController::class, 'upload'])->name('upload');
