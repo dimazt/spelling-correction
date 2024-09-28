@@ -42,6 +42,7 @@ class SpellingCorrection2Controller extends Controller
         // 4. Lakukan koreksi ejaan
         // $correctedText = $this->processing->correctSpelling($processedText, $kbbiWords);
         $pages = preg_split('/\n\s*\n/', $pdfText);
+        // dd($pages);
         $correctedPages = [];
         foreach ($pages as $page) {
             // Lakukan koreksi pada setiap halaman

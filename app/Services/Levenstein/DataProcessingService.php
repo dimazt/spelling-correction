@@ -146,6 +146,7 @@ class DataProcessingService
     {
         // Tokenisasi dengan mempertahankan tanda baca
         $tokens = $this->tokenizeWithPunctuation($text);
+        dd($tokens);
         $correctedTokens = [];
 
         foreach ($tokens as $token) {

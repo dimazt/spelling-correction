@@ -1,14 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Upload PDF untuk Spelling Correction</title>
-</head>
-<body>
-    <h1>Upload PDF untuk Spelling Correction</h1>
+@extends('index')
+@section('title', 'Beranda')
+@section('content')
+
+<div class="card card-shadow mt-3 p-5">
+    <h5>Upload PDF untuk Spelling Correction</h5>
     <form action="{{ route('upload') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <input type="file" name="pdf" accept="application/pdf" required>
-        <button type="submit">Upload PDF</button>
+        <button type="submit" class="btn btn-primary">Upload PDF</button>
     </form>
-</body>
-</html>
+
+</div>
+
+
+@endsection
