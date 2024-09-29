@@ -48,7 +48,7 @@
                             <td style="text-align:center">{{ $item }}</td>
                             <td>Gatau Namanya apa </td>
                             <td>2 September 2021 </td>
-                            <td class="text-center"><span class="btn btn-sm btn-success disabled">Success</span></td>
+                            <td class="text-center"><span  class="btn btn-sm btn-success disabled">Success</span></td>
                             <td class="text text-center">
                                 <a href="#"
                                     class="btn btn-sm btn-success btn-icon-split {{isset($item['status']) ? '' : 'disabled'}}">

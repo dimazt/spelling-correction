@@ -16,8 +16,11 @@ class SpellingCorrection2Controller extends Controller
 {
     private $processing;
     private $preparation;
-    public function __construct(DataPreparationService $dataPreparationService, DataProcessingService $dataProcessingService)
-    {
+    public function __construct(
+        DataPreparationService $dataPreparationService,
+        DataProcessingService $dataProcessingService
+        ) {
+        $this->middleware('myauth');
         $this->preparation = $dataPreparationService;
         $this->processing = $dataProcessingService;
     }
@@ -35,13 +38,9 @@ class SpellingCorrection2Controller extends Controller
 
         // 2. Siapkan kamus KBBI (array kata-kata KBBI)
         $kbbiWords = (new TextProcessingService())->loadIndonesianWords();
-
-        // 3. Preprocess data
-        // $processedText = $this->preparation->preprocessText($pdfText, $kbbiWords);
-
-        // 4. Lakukan koreksi ejaan
-        // $correctedText = $this->processing->correctSpelling($processedText, $kbbiWords);
+        // pisahkan kalimat pada setiap spasi enter
         $pages = preg_split('/\n\s*\n/', $pdfText);
+
         // dd($pages);
         $correctedPages = [];
         foreach ($pages as $page) {
@@ -54,8 +53,8 @@ class SpellingCorrection2Controller extends Controller
         // Menggabungkan halaman yang sudah dikoreksi
         // $correctedText = implode("<div style='page-break-after: always;'></div>", $correctedPages);
         // dd($correctedText);
-        // 5. Simpan hasil koreksi ke PDF baru
 
+        // 5. Simpan hasil koreksi ke PDF baru
         $outputPdfPath = $this->saveToPdf($correctedPages);
 
         // 6. Kembalikan file PDF yang sudah dikoreksi untuk didownload

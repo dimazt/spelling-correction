@@ -10,7 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
-
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.7/css/dataTables.dataTables.css" />
     <!-- Custom styles for this template-->
     <link href="{{asset('assets/css/sb-admin-2.min.css')}}" rel="stylesheet">
     <style>
@@ -43,6 +43,20 @@
             font-size: 24px;
             position: relative;
         }
+
+        table {
+            width: 100%;
+            table-layout: fixed;
+            /* Optional: Force equal width columns */
+        }
+
+        th,
+        td {
+            padding: 8px 16px;
+            /* Padding untuk memberi ruang dalam cell */
+            text-align: left;
+            /* Align teks ke kiri */
+        }
     </style>
 </head>
 
@@ -74,6 +88,8 @@
                     aria-current="page">Home</a>
                 <a href="{{ route('training') }}" class="btn btn-primary {{$active_page == "training" ? 'active' : ''}}"
                     aria-current="page">Training</a>
+                <a href="{{ route('setting') }}" class="btn btn-primary {{$active_page == "setting" ? 'active' : ''}}"
+                    aria-current="page">Kamus</a>
 
             </div>
         </header>
@@ -386,6 +402,16 @@
         }
     });
 
+</script>
+
+<script src="https://cdn.datatables.net/2.1.7/js/dataTables.js"></script>
+<script>
+    $(document).ready(function () {
+        // $('#datatable').DataTable();
+        let newTable = new DataTable('#datatable', {
+            responsive: true
+        })
+    });
 </script>
 
 </html>
