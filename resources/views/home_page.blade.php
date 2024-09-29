@@ -57,10 +57,10 @@
                             <td>{{$item->name}}</td>
                             <td>{{$item->created_at}}</td>
                             <td class="text-center"><span
-                                    class="btn btn-sm btn-{{$item->label}} disabled">{{$item->status}}</span></td>
+                                    class="badge badge-md p-1 badge-{{$item->label}} disabled">{{$item->status}}</span></td>
                             <td class="text text-center">
                                 @if($item->result)
-                                    <a href="{{ route('download', ['filename' => basename($item->result)]) }}"
+                                    <a href="/download/{{$item->result }}"
                                         class="btn btn-sm btn-success btn-icon-split {{ $item->is_enable ? '' : 'disabled' }}">
                                         <span class="icon text-white-60">
                                             <i class="fas fa-download"></i>
@@ -68,16 +68,16 @@
                                     </a>
                                 @endif
 
-                                <a href="#" class="btn btn-sm btn-warning btn-icon-split">
+                                <!-- <a href="#" class="btn btn-sm btn-warning btn-icon-split">
                                     <span class="icon text-60">
                                         <i class="fas fa-edit"></i>
                                     </span>
-                                </a>
-                                <a href="#" class="btn btn-sm btn-danger btn-icon-split">
+                                </a> -->
+                                <!-- <a href="#" class="btn btn-sm btn-danger btn-icon-split">
                                     <span class="icon text-white-50">
                                         <i class="fas fa-trash"></i>
                                     </span>
-                                </a>
+                                </a> -->
                             </td>
                         </tr>
                     @endforeach
