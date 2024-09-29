@@ -49,7 +49,7 @@ class SpellingCorrection2Controller extends Controller
         ];
 
         $user = auth()->user();
-        $spellingCorrection = SpellingCorrection::where('user_id', $user->id)->get();
+        $spellingCorrection = SpellingCorrection::where('user_id', $user->id)->orderByDesc('created_at')->get();
 
         $spellingCorrection->transform(function ($item) use ($status) {
             // Tentukan apakah 'is_enable' true atau false
@@ -58,6 +58,7 @@ class SpellingCorrection2Controller extends Controller
             $transform_status = isset($status->{$item->status}) ? $status->{$item->status} : $status->failed;
             $item->status = $transform_status->status;
             $item->label = $transform_status->label;
+            $item->result = $item->result ? basename($item->result) : '#';
             return $item;
         });
 
