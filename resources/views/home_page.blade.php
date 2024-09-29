@@ -59,12 +59,15 @@
                             <td class="text-center"><span
                                     class="btn btn-sm btn-{{$item->label}} disabled">{{$item->status}}</span></td>
                             <td class="text text-center">
-                                <a href="{{ route('download', ['filename' => basename($item->result)]) }}"
-                                    class="btn btn-sm btn-success btn-icon-split {{$item->is_enable ? '' : 'disabled'}}">
-                                    <span class="icon text-white-60">
-                                        <i class="fas fa-download"></i>
-                                    </span>
-                                </a>
+                                @if($item->result)
+                                    <a href="{{ route('download', ['filename' => basename($item->result)]) }}"
+                                        class="btn btn-sm btn-success btn-icon-split {{ $item->is_enable ? '' : 'disabled' }}">
+                                        <span class="icon text-white-60">
+                                            <i class="fas fa-download"></i>
+                                        </span>
+                                    </a>
+                                @endif
+
                                 <a href="#" class="btn btn-sm btn-warning btn-icon-split">
                                     <span class="icon text-60">
                                         <i class="fas fa-edit"></i>
