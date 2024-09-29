@@ -50,6 +50,8 @@ jobs:
         run: |
           sudo chmod -R 775 storage
           sudo chmod -R 775 bootstrap/cache
+          sudo chown -R www-data:www-data /var/www/spelling-correction/storage
+          sudo chown -R www-data:www-data /var/www/spelling-correction/bootstrap/cache
         #   sudo chmod -R o+rw storage
         #   sudo chmod 664 storage/logs/laravel.log
         #   sudo rm -rf /var/www/backend/
