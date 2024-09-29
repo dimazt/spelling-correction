@@ -64,13 +64,6 @@ jobs:
           target: '/var/www/spelling-correction'
           strip-components: 1  # Adjust the value based on your project structur
           
-
-      - name: Set permissions
-        run: | 
-            sudo chown -R www-data:www-data /var/www/spelling-correction/storage
-            sudo chown -R www-data:www-data /var/www/spelling-correction/bootstrap/cache
-
-      
     #   - name: Clean up
     #     run: sudo rm -rf vendor
 
