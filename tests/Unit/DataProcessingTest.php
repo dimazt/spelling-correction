@@ -50,24 +50,22 @@ class DataProcessingTest extends TestCase
     }
     public function testDistance()
     {
+        // $this->markTestSkipped();
         $kbbi = (new TextProcessingService())->loadIndonesianWords();
         $correction = (new DataProcessingService())->correctWordWithCase(
-            "kemudin",
+            "terdriri",
             $kbbi,
             'levenshtein'
         );
-        $this->assertEquals('kemudi', $correction);
+        $this->assertEquals('terdiri', $correction);
     }
     public function testLevenshteinDistance()
     {
+        $this->markTestSkipped();
         $kbbi = (new TextProcessingService())->loadIndonesianWords();
-        $result = Levenshtein::manualLevenshteinWithLog('legendaris','lenegdi');
-        $result2 = Levenshtein::manualLevenshteinWithLog('lenegdi','legendaris');
+        $result = Levenshtein::manualLevenshteinWithLog('terdriri','berdiri');
         // $result2 = Similarity::processAlgorithmSimilarity('kemudin','kemudian');
-        dump($result->distance,$result2->distance);
-        dump($result->matrix,$result2->matrix);
-        dump($result->similarity,$result2->similarity);
-        dd($result->logs,$result2->logs);
+        dd($result->distance, $result->similarity);
         // $this->assertEquals('kemudi', $correction);
     }
 

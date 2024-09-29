@@ -11,6 +11,10 @@ class DataProcessingService
         $isCapitalized = ctype_upper($word[0]);
         $lowercaseWord = strtolower($word);
 
+        if (in_array($lowercaseWord, $kbbiWords)) {
+            return $word;
+        }
+
         $correctedWord = match ($comparisonMode) {
             'similarity' => Similarity::correctWord($lowercaseWord, $kbbiWords),
             'levenshtein' => Levenshtein::correctWord($lowercaseWord, $kbbiWords),
@@ -19,6 +23,7 @@ class DataProcessingService
 
         // Kembalikan huruf kapital jika awalnya kapital
         return $isCapitalized ? ucfirst($correctedWord) : $correctedWord;
+
     }
 
     public function correctSpellingWithStructureAndCase($text, $kbbiWords)
@@ -32,7 +37,12 @@ class DataProcessingService
             if (ctype_alpha($token)) {
                 // Lakukan koreksi pada kata sambil mempertahankan huruf kapital
                 $correctedToken = $this->correctWordWithCase($token, $kbbiWords);
-                $correctedTokens[] = $correctedToken;
+
+                // Jika token yang diperbaiki berbeda dengan token asli, beri warna merah
+                $correctedTokens[] = ($correctedToken !== $token)
+                    ? "<span style='color: red;'>$correctedToken</span>"
+                    : $correctedToken;
+
             } else {
                 // Jika token adalah simbol atau tanda baca, biarkan
                 $correctedTokens[] = $token;

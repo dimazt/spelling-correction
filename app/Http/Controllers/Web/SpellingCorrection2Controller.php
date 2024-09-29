@@ -49,15 +49,14 @@ class SpellingCorrection2Controller extends Controller
             $correctedPages[] = $this->processing->correctSpellingWithStructureAndCase($page, $kbbiWords);
             // $correctedPages[] = $this->textProcessingService->spellCheck($page);
         }
-        $correctedText = implode("\n\n", $correctedPages);
-        // dd($correctedPages);
+        $correctedPages = implode("\n\n", $correctedPages);
         // dd($correctedPages);
         // Menggabungkan halaman yang sudah dikoreksi
         // $correctedText = implode("<div style='page-break-after: always;'></div>", $correctedPages);
         // dd($correctedText);
         // 5. Simpan hasil koreksi ke PDF baru
 
-        $outputPdfPath = $this->saveToPdf($correctedText);
+        $outputPdfPath = $this->saveToPdf($correctedPages);
 
         // 6. Kembalikan file PDF yang sudah dikoreksi untuk didownload
         return response()->download($outputPdfPath);

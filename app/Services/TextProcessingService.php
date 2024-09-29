@@ -236,30 +236,7 @@ class TextProcessingService
 
         // Menggunakan preg_split untuk memisahkan kata berdasarkan spasi dan newline
         $words = preg_split('/[\s\n]+/', $fileContent);
-
-        // Menghapus kata yang kosong setelah pemisahan
-        // $words = array_filter(array_map('trim', $words));
-        // // sort($words);
-
-        // // Jika diperlukan, konversi ke lowercase
-        // $words = array_map('strtolower', $words);
-
-        // $words = preg_split('/[\s\n]+/', $combinedString);
-
-        // Menghapus kata yang kosong setelah pemisahan
-        $words = array_filter(array_map('trim', $words));
-
-        // Jika diperlukan, konversi ke lowercase
-        $words = array_map('strtolower', $words);
-
-        // Hapus duplikat lagi setelah konversi ke lowercase
-        $words = array_unique($words);
-        $words = array_map(function($word) {
-            return trim(preg_replace('/[()]/', '', $word)); // Hapus tanda kurung dan trim whitespace
-        }, $words);
-        $words = array_unique($words);
-        // Urutkan kata
-        sort($words);
+        
         return $words;
     }
 }

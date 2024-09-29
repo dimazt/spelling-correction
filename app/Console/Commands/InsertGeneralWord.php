@@ -41,37 +41,29 @@ class InsertGeneralWord extends Command
             $combinedData[] = trim($word . ' ' . $synonyms); // Gabungkan kata dan sinonim
         }
 
-        // Hapus duplikat
-        // $combinedData = array_unique($combinedData);
+        // Hapus duplikat dan gabungkan semua elemen menjadi satu string
+        $combinedData = array_unique($combinedData);
+        $combinedString = implode(' ', $combinedData);
 
-        // // Gabungkan semua elemen menjadi satu string
-        // $combinedString = implode(' ', $combinedData);
+        // Pisahkan kata-kata, hapus kata kosong, dan konversi ke lowercase
+        $words = preg_split('/[\s\n]+/', $combinedString);
+        $words = array_filter(array_map('trim', $words)); // Menghapus kata kosong
+        $words = array_map('strtolower', $words); // Konversi ke lowercase
 
-        // // Pisahkan kata-kata
-        // $words = preg_split('/[\s\n]+/', $combinedString);
+        // Hapus tanda kurung dan trim whitespace dari setiap kata
+        $words = array_map(function ($word) {
+            return trim(preg_replace('/[()]/', '', $word)); // Hapus tanda kurung
+        }, $words);
 
-        // // Menghapus kata yang kosong setelah pemisahan
-        // $words = array_filter(array_map('trim', $words));
+        // Hapus duplikat lagi setelah pemrosesan
+        $words = array_unique($words);
 
-        // // Jika diperlukan, konversi ke lowercase
-        // $words = array_map('strtolower', $words);
+        // Urutkan kata
+        sort($words);
 
-        // // Hapus duplikat lagi setelah konversi ke lowercase
-        // $words = array_unique($words);
-        // $words = array_map(function($word) {
-        //     return trim(preg_replace('/[()]/', '', $word)); // Hapus tanda kurung dan trim whitespace
-        // }, $words);
-        // $combinedData = array_unique($combinedData);
-        // // Urutkan kata
-        // sort($words);
-
-
-        // Menggabungkan semua kata dan sinonim menjadi satu string
-        // $finalString = implode('; ', $combinedData);
-
-        // Simpan ke file atau database
-        $this->saveToFile($combinedData); // Simpan hasil akhir ke file
-        // $this->saveToDatabase($filteredWords); // Jika ingin menyimpan ke database
+        // Simpan hasil akhir ke file
+        $this->saveToFile($words); // Pastikan untuk menyimpan hasil yang sudah diolah
+// $this->saveToDatabase($words); // Jika ingin menyimpan ke database
 
         $this->info('Common words imported successfully!');
     }

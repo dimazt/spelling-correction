@@ -9,16 +9,13 @@ class Levenshtein
         $closestWord = '';
         $shortestDistance = PHP_INT_MAX;
         $closestLengthDifference = PHP_INT_MAX;
-
+        $highestSimilarity = 75;
         // Cek apakah kata sudah ada di KBBI, jika ada kembalikan langsung
-        if (in_array($word, $kbbiWords)) {
-            return $word;
-        }
-
         foreach ($kbbiWords as $kbbiWord) {
             // Hitung jarak Levenshtein dan similarity
             $result = self::processAlgorithmLevenstain($word, $kbbiWord);
             $levDistance = $result->distance;
+            $similarity = $result->similarity;
             $lengthDifference = abs(strlen($word) - strlen($kbbiWord));
 
             // Jika Levenshtein 0 (kata cocok sempurna), kembalikan kata
@@ -26,24 +23,32 @@ class Levenshtein
                 return $kbbiWord;
             }
 
-            // Mode "distance only"
-            if ($levDistance < $shortestDistance) {
+            // Mode "levenshtain only"
+            if ($similarity > $highestSimilarity) {
                 $closestWord = $kbbiWord;
+                $highestSimilarity = $similarity;
                 $shortestDistance = $levDistance;
                 $closestLengthDifference = $lengthDifference;
             }
-            // Jika distance sama, gunakan panjang kata
-            elseif ($levDistance == $shortestDistance) {
-                if ($lengthDifference < $closestLengthDifference) {
+            // Jika similarity sama, cek Levenshtein distance
+            elseif ($similarity == $highestSimilarity) {
+                if ($levDistance < $shortestDistance) {
                     $closestWord = $kbbiWord;
+                    $shortestDistance = $levDistance;
                     $closestLengthDifference = $lengthDifference;
                 }
-                // Jika panjang kata sama, gunakan urutan alfabet
-                elseif ($lengthDifference == $closestLengthDifference && strcmp($kbbiWord, $closestWord) < 0) {
-                    $closestWord = $kbbiWord;
+                // Jika Levenshtein juga sama, gunakan panjang kata
+                elseif ($levDistance == $shortestDistance) {
+                    if ($lengthDifference < $closestLengthDifference) {
+                        $closestWord = $kbbiWord;
+                        $closestLengthDifference = $lengthDifference;
+                    }
+                    // Jika semuanya sama, gunakan urutan alfabet
+                    elseif ($lengthDifference == $closestLengthDifference && strcmp($kbbiWord, $closestWord) < 0) {
+                        $closestWord = $kbbiWord;
+                    }
                 }
             }
-
         }
 
         return $closestWord ?: $word;
