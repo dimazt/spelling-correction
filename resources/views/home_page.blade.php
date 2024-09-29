@@ -3,6 +3,11 @@
 @section('content')
 
 <div style="min-width: 100%; margin:0" class="card card-shadow mt-3 p-5 ">
+    @if (session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
     <div class="m-3">
         <h4 style="font-weight: 800; text-align:center" class="text text-bold">Upload PDF Untuk Spelling
             Correction</h4>
@@ -43,15 +48,19 @@
                     </td>
                 </thead>
                 <tbody>
-                    @foreach (['1', '2', '3'] as $item)
+                    @php
+                        $no = 1;
+                    @endphp
+                    @foreach ($data as $item)
                         <tr>
-                            <td style="text-align:center">{{ $item }}</td>
-                            <td>Gatau Namanya apa </td>
-                            <td>2 September 2021 </td>
-                            <td class="text-center"><span class="btn btn-sm btn-success disabled">Success</span></td>
+                            <td style="text-align:center">{{ $no++ }}</td>
+                            <td>{{$item->name}}</td>
+                            <td>{{$item->created_at}}</td>
+                            <td class="text-center"><span
+                                    class="btn btn-sm btn-{{$item->label}} disabled">{{$item->status}}</span></td>
                             <td class="text text-center">
-                                <a href="#"
-                                    class="btn btn-sm btn-success btn-icon-split {{isset($item['status']) ? '' : 'disabled'}}">
+                                <a href="{{ route('download', ['filename' => basename($item->result)]) }}"
+                                    class="btn btn-sm btn-success btn-icon-split {{$item->is_enable ? '' : 'disabled'}}">
                                     <span class="icon text-white-60">
                                         <i class="fas fa-download"></i>
                                     </span>

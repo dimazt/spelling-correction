@@ -20,9 +20,7 @@ Route::group(['middleware' => 'guest'], function () {
 
 
 Route::group(['middleware' => 'auth'], function () {
-    Route::get('/', function () {
-        return view('home_page', ['active_page' => 'home']);
-    })->name('home');
+    Route::get('/', [SpellingCorrection2Controller::class, 'home'])->name('home');
     Route::get('/training', function () {
         return view('training_page', ['active_page' => 'training']); // buat form upload di view
     })->name('training');
@@ -31,5 +29,13 @@ Route::group(['middleware' => 'auth'], function () {
     })->name('setting');
 
     Route::post('/upload', action: [SpellingCorrection2Controller::class, 'upload'])->name('upload');
+
+
+    Route::get('/download/{filename}', function ($filename) {
+        $filepath = "results/$filename";
+        if (Storage::exists($filepath)) {
+            return Storage::download($filepath);
+        }
+        return abort(404, 'File not found.');
+    })->name('download');
 });
-// Route::post('/upload', action: [SpellingCorrectionController::class, 'upload'])->name('upload');

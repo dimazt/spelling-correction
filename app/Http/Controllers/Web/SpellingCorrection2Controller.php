@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\CorrectWord;
+use App\Models\SpellingCorrection;
 use App\Services\SpellingCorrection\DataPreparationService;
 use App\Services\SpellingCorrection\DataProcessingService;
 use App\Services\TextProcessingService;
@@ -19,46 +21,83 @@ class SpellingCorrection2Controller extends Controller
     public function __construct(
         DataPreparationService $dataPreparationService,
         DataProcessingService $dataProcessingService
-        ) {
-        $this->middleware('myauth');
+    ) {
         $this->preparation = $dataPreparationService;
         $this->processing = $dataProcessingService;
     }
-    //
+
+
+    public function home()
+    {
+        $status = (object) [
+            "done" => (object) [
+                "status" => "Selesai",
+                "label" => "success"
+            ],
+            "failed" => (object) [
+                "status" => "Gagal",
+                "label" => "danger"
+            ],
+            "processing" => (object) [
+                "status" => "Sedang Diproses",
+                "label" => "primary"
+            ],
+            "waiting" => (object) [
+                "status" => "Menunggu Diproses",
+                "label" => "primary"
+            ]
+        ];
+
+        $user = auth()->user();
+        $spellingCorrection = SpellingCorrection::where('user_id', $user->id)->get();
+
+        $spellingCorrection->transform(function ($item) use ($status) {
+            // Tentukan apakah 'is_enable' true atau false
+            $item->is_enable = $item->status === "done" ? true : false;
+            // Gunakan notasi objek (->) untuk mengakses properti
+            $transform_status = isset($status->{$item->status}) ? $status->{$item->status} : $status->failed;
+            $item->status = $transform_status->status;
+            $item->label = $transform_status->label;
+            return $item;
+        });
+
+
+        return view('home_page', [
+            'active_page' => 'home',
+            'data' => $spellingCorrection
+        ]);
+    }
     public function upload(Request $request)
     {
+        $user = auth()->user();
         // 1. Upload dan ekstrak teks dari PDF
         $request->validate([
             'pdf' => 'required|mimes:pdf|max:2048'
         ]);
 
         // Simpan file PDF ke dalam storage (storage/app/pdf)
-        $filePath = $request->file('pdf')->store('pdfs');
+        $file = $request->file('pdf');
+
+        // Mengambil nama asli file
+        $originalFileName = $file->getClientOriginalName();
+
+        // Menyimpan file ke direktori 'pdfs'
+        $filePath = $file->store('pdfs');
+        $spellingCorrection = SpellingCorrection::create([
+            'name' => $originalFileName,
+            'status' => 'waiting',
+            'type' => 'testing',
+            'user_id' => $user->id
+        ]);
         $pdfText = $this->extractTextFromPdf($filePath);
 
-        // 2. Siapkan kamus KBBI (array kata-kata KBBI)
-        $kbbiWords = (new TextProcessingService())->loadIndonesianWords();
         // pisahkan kalimat pada setiap spasi enter
         $pages = preg_split('/\n\s*\n/', $pdfText);
-
-        // dd($pages);
-        $correctedPages = [];
-        foreach ($pages as $page) {
-            // Lakukan koreksi pada setiap halaman
-            $correctedPages[] = $this->processing->correctSpellingWithStructureAndCase($page, $kbbiWords);
-            // $correctedPages[] = $this->textProcessingService->spellCheck($page);
-        }
-        $correctedPages = implode("\n\n", $correctedPages);
-        // dd($correctedPages);
-        // Menggabungkan halaman yang sudah dikoreksi
-        // $correctedText = implode("<div style='page-break-after: always;'></div>", $correctedPages);
-        // dd($correctedText);
-
-        // 5. Simpan hasil koreksi ke PDF baru
-        $outputPdfPath = $this->saveToPdf($correctedPages);
-
-        // 6. Kembalikan file PDF yang sudah dikoreksi untuk didownload
-        return response()->download($outputPdfPath);
+        CorrectWord::dispatch((object) [
+            "pages" => $pages,
+            "model" => $spellingCorrection
+        ]);
+        return back()->with('success', "Dokumen sedang diproses, mohon menunggu beberapa saat!");
     }
 
     private function extractTextFromPdf($filePath)
@@ -67,28 +106,6 @@ class SpellingCorrection2Controller extends Controller
         return Pdf::getText($pdfFullPath, env('PDF_TO_TEXT', null));
     }
 
-    private function saveToPdf($correctedLines)
-    {
-        $dompdf = new Dompdf();
 
-        $html = $correctedLines;
-        // foreach ($correctedLines as $line) {
-        //     $html .= '<p>' . $line . '</p>';
-        // }
-
-        // Load HTML ke Dompdf
-        $dompdf->loadHtml($html);
-
-        // Set ukuran kertas
-        $dompdf->setPaper('A4', 'portrait');
-
-        // Render PDF
-        $dompdf->render();
-
-        // Simpan file PDF
-        $outputPath = storage_path('app/corrected_' . time() . '.pdf');
-        File::put($outputPath, $dompdf->output());
-        return $outputPath;
-    }
 
 }

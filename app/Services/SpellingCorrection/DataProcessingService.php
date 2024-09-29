@@ -6,7 +6,7 @@ use App\Services\SpellingCorrection\Algorithms\Similarity;
 
 class DataProcessingService
 {
-    public function correctWordWithCase($word, $kbbiWords, $comparisonMode = null)
+    public static function correctWordWithCase($word, $kbbiWords, $comparisonMode = null)
     {
         $isCapitalized = ctype_upper($word[0]);
         $lowercaseWord = strtolower($word);
@@ -26,7 +26,7 @@ class DataProcessingService
 
     }
 
-    public function correctSpellingWithStructureAndCase($text, $kbbiWords)
+    public static function correctSpellingWithStructureAndCase($text, $kbbiWords)
     {
         // Tokenisasi dengan mempertahankan tanda baca
         $tokens = DataPreparationService::tokenizeWithPunctuation($text);
@@ -36,7 +36,7 @@ class DataProcessingService
             // Periksa apakah token adalah kata, dan bukan simbol atau angka
             if (ctype_alpha($token)) {
                 // Lakukan koreksi pada kata sambil mempertahankan huruf kapital
-                $correctedToken = $this->correctWordWithCase($token, $kbbiWords);
+                $correctedToken = self::correctWordWithCase($token, $kbbiWords);
 
                 // Jika token yang diperbaiki berbeda dengan token asli, beri warna merah
                 $correctedTokens[] = ($correctedToken !== $token)
