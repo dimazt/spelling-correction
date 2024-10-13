@@ -8,8 +8,9 @@ class Levenshtein
     {
         $closestWord = '';
         $shortestDistance = PHP_INT_MAX;
+        $highestSimilarity = 0;  // Ubah ini menjadi 0, karena similarity tertinggi akan lebih baik.
         $closestLengthDifference = PHP_INT_MAX;
-        $highestSimilarity = 75;
+
         // Cek apakah kata sudah ada di KBBI, jika ada kembalikan langsung
         foreach ($kbbiWords as $kbbiWord) {
             // Hitung jarak Levenshtein dan similarity
@@ -23,22 +24,22 @@ class Levenshtein
                 return $kbbiWord;
             }
 
-            // Mode "levenshtain only"
-            if ($similarity > $highestSimilarity) {
+            // Mode "levenshtein distance first"
+            if ($levDistance < $shortestDistance) {
                 $closestWord = $kbbiWord;
-                $highestSimilarity = $similarity;
                 $shortestDistance = $levDistance;
+                $highestSimilarity = $similarity;
                 $closestLengthDifference = $lengthDifference;
             }
-            // Jika similarity sama, cek Levenshtein distance
-            elseif ($similarity == $highestSimilarity) {
-                if ($levDistance < $shortestDistance) {
+            // Jika Levenshtein sama, cek similarity
+            elseif ($levDistance == $shortestDistance) {
+                if ($similarity > $highestSimilarity) {
                     $closestWord = $kbbiWord;
-                    $shortestDistance = $levDistance;
+                    $highestSimilarity = $similarity;
                     $closestLengthDifference = $lengthDifference;
                 }
-                // Jika Levenshtein juga sama, gunakan panjang kata
-                elseif ($levDistance == $shortestDistance) {
+                // Jika similarity sama, gunakan panjang kata
+                elseif ($similarity == $highestSimilarity) {
                     if ($lengthDifference < $closestLengthDifference) {
                         $closestWord = $kbbiWord;
                         $closestLengthDifference = $lengthDifference;
@@ -53,6 +54,7 @@ class Levenshtein
 
         return $closestWord ?: $word;
     }
+
     public static function manualLevenshteinWithLog($word1, $word2)
     {
         $logs = [];

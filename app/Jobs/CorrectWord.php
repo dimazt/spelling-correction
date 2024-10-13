@@ -19,6 +19,7 @@ class CorrectWord implements ShouldQueue
     /**
      * Create a new job instance.
      */
+    public $timeout = 3600;
     public function __construct($data)
     {
         $this->pages = $data->pages;
@@ -57,7 +58,6 @@ class CorrectWord implements ShouldQueue
             throw $th;
         }
     }
-
     private function saveToPdf($correctedLines)
     {
         $dompdf = new Dompdf();

@@ -17,7 +17,7 @@ class InsertKBBI extends Command
 
     public function handle()
     {
-        $filePath = 'kbbi/indonesian-words.txt';
+        $filePath = 'kbbi/common_words.txt';
         // dd($filePath);
         if (!Storage::exists($filePath)) {
             $this->error("File not found.");
