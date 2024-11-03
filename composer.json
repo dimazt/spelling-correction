@@ -12,7 +12,8 @@
         "setasign/fpdf": "^1.8",
         "setasign/fpdi": "^2.6",
         "smalot/pdfparser": "^2.11",
-        "spatie/pdf-to-text": "^1.53"
+        "spatie/pdf-to-text": "^1.53",
+        "yajra/laravel-datatables": "^11.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

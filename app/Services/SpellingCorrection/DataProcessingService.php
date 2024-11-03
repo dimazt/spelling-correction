@@ -31,6 +31,7 @@ class DataProcessingService
         // Tokenisasi dengan mempertahankan tanda baca
         $tokens = DataPreparationService::tokenizeWithPunctuation($text);
         $correctedTokens = [];
+        $correctedWord = [];
 
         foreach ($tokens as $token) {
             // Periksa apakah token adalah kata, dan bukan simbol atau angka
@@ -41,7 +42,14 @@ class DataProcessingService
                 // Jika token yang diperbaiki berbeda dengan token asli, beri warna merah
                 $correctedTokens[] = ($correctedToken !== $token)
                     ? "<span style='color: red;'>$correctedToken</span>"
-                    : $correctedToken;
+                    : "<span style='color: black;'>$correctedToken</span>";
+
+                if ($correctedToken !== $token) {
+                    $correctedWord[] = [
+                        'incorrect_word' => $token,
+                        'correct_word' => $correctedToken
+                    ];
+                }
 
             } else {
                 // Jika token adalah simbol atau tanda baca, biarkan
@@ -50,9 +58,15 @@ class DataProcessingService
         }
 
         // Gabungkan kembali menjadi string
-        return implode('', array_map(function ($token) {
+        $results = implode('', array_map(function ($token) {
             return ctype_punct($token) ? $token : ' ' . $token;
         }, $correctedTokens));
+
+
+        return (object) [
+            'results' => $results,
+            'correction_results' => $correctedWord
+        ];
     }
 
 

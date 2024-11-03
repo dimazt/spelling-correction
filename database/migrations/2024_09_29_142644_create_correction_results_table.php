@@ -13,9 +13,9 @@ return new class extends Migration {
         Schema::create('correction_results', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('document_id')->index();
-            $table->string('incorrect_word');
-            $table->string('correct_word');
-            $table->string('correction')->nullable();
+            $table->text('incorrect_word');
+            $table->text('correct_word');
+            $table->text('correction')->nullable();
             $table->timestamps();
         });
     }

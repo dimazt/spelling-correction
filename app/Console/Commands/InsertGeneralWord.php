@@ -63,31 +63,9 @@ class InsertGeneralWord extends Command
 
         // Simpan hasil akhir ke file
         $this->saveToFile($words); // Pastikan untuk menyimpan hasil yang sudah diolah
-// $this->saveToDatabase($words); // Jika ingin menyimpan ke database
+        $this->saveToDatabase($words); // Jika ingin menyimpan ke database
 
         $this->info('Common words imported successfully!');
-    }
-
-    // Fungsi untuk memeriksa apakah kata adalah kata dasar (tidak ada imbuhan)
-    private function isKataDasar($word)
-    {
-        // Periksa apakah kata tidak mengandung awalan atau akhiran
-        $prefixes = ['me', 'di', 'ber', 'ke', 'se', 'pe'];
-        $suffixes = ['kan', 'i', 'an', 'nya'];
-
-        foreach ($prefixes as $prefix) {
-            if (strpos($word, $prefix) === 0) {
-                return false;
-            }
-        }
-
-        foreach ($suffixes as $suffix) {
-            if (substr($word, -strlen($suffix)) === $suffix) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
 

@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Models\CorrectionResult;
+use App\Models\SpellingCorrection;
 use App\Services\SpellingCorrection\DataProcessingService;
 use App\Services\TextProcessingService;
 use Dompdf\Dompdf;
@@ -33,18 +35,39 @@ class CorrectWord implements ShouldQueue
     public function handle(): void
     {
         $correctedPages = [];
+        $correctionResults = [];
+        $incorrectedPages = [];
         try {
             $this->model->update([
                 "status" => "processing"
             ]);
             foreach ($this->pages as $page) {
                 // Lakukan koreksi pada setiap halaman
-                $correctedPages[] = DataProcessingService::correctSpellingWithStructureAndCase(
+                $correction = DataProcessingService::correctSpellingWithStructureAndCase(
                     $page,
                     $this->kbbiWords
                 );
+                $incorrectedPages[] = $page;
+                $correctionResults[] = $correction->correction_results;
+                $correctedPages[] = $correction->results;
             }
             $correctedPages = implode("\n\n", $correctedPages);
+            $correctionResults = array_merge(...$correctionResults);
+            // if (!empty($correctionResults)) {
+            //     foreach ($correctionResults as $result) {
+            //         CorrectionResult::create(array_merge([
+            //             'document_id' => $this->model->id
+            //         ], $result));
+            //     }
+            // }
+
+            CorrectionResult::create(
+                [
+                    'document_id' => $this->model->id,
+                    'incorrect_word' => implode("\n\n", $incorrectedPages),
+                    'correct_word' => $correctedPages
+                ]
+            );
             // 5. Simpan hasil koreksi ke PDF bar
             $outputPdfPath = $this->saveToPdf($correctedPages);
             $this->model->update([

@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/2.1.7/css/dataTables.dataTables.css" />
     <!-- Custom styles for this template-->
     <link href="{{asset('assets/css/sb-admin-2.min.css')}}" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
         .background-gradient {
             background: linear-gradient(to bottom, #2c73d2, #0081cf, #0089ba);
@@ -84,11 +85,12 @@
             </div>
             <!-- SUSUNAN MENU -->
             <div id="navbar" class="btn-group mt-2">
+                @php if (!isset($active_page)) {$active_page = "";} @endphp
                 <a href="{{ route('home') }}" class="btn btn-primary {{$active_page == "home" ? 'active' : ''}}"
                     aria-current="page">Home</a>
                 <a href="{{ route('training') }}" class="btn btn-primary {{$active_page == "training" ? 'active' : ''}}"
                     aria-current="page">Training</a>
-                <a href="{{ route('setting') }}" class="btn btn-primary {{$active_page == "setting" ? 'active' : ''}}"
+                <a href="{{ route('kamus') }}" class="btn btn-primary {{$active_page == "kamus" ? 'active' : ''}}"
                     aria-current="page">Kamus</a>
 
             </div>
@@ -96,6 +98,8 @@
         <main>
             @yield('content')
         </main>
+
+        @yield('scripts')
     </div>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"

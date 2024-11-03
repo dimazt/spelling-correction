@@ -1,11 +1,15 @@
 @extends('index')
-@section('title', 'Beranda')
+@section('title', $active_page == "training" ? "Training" : "Beranda")
 @section('content')
 
 <div style="min-width: 100%; margin:0" class="card card-shadow mt-3 p-5 ">
     @if (session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
+        </div>
+        @elseif (session('failed'))
+        <div class="alert alert-danger">
+            {{ session('failed') }}
         </div>
     @endif
     <div class="m-3">
@@ -17,6 +21,7 @@
             <form action="{{ route('upload') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <input type="file" name="pdf" accept="application/pdf" required>
+                <input type="hidden" name="type" value={{$active_page}}>
                 <button type="submit" class="btn btn-primary">Upload PDF</button>
             </form>
         </div>
@@ -68,16 +73,21 @@
                                     </a>
                                 @endif
 
-                                <!-- <a href="#" class="btn btn-sm btn-warning btn-icon-split">
-                                    <span class="icon text-60">
-                                        <i class="fas fa-edit"></i>
-                                    </span>
-                                </a> -->
-                                <!-- <a href="#" class="btn btn-sm btn-danger btn-icon-split">
-                                    <span class="icon text-white-50">
-                                        <i class="fas fa-trash"></i>
-                                    </span>
-                                </a> -->
+                                @if ($active_page == "training")
+                                    <a href="{{ route('correction.detail', ['id' => $item->id]) }}"
+                                        class="btn btn-sm btn-warning btn-icon-split {{ $item->is_enable ? '' : 'disabled' }}">
+                                        <span class="icon text-60">
+                                            <i class="fas fa-edit"></i>
+                                        </span>
+                                    </a>
+                                    <a href="#"
+                                        class="btn btn-sm btn-danger btn-icon-split {{ $item->is_enable ? '' : 'disabled' }}">
+                                        <span class="icon text-white-50">
+                                            <i class="fas fa-trash"></i>
+                                        </span>
+                                    </a>
+
+                                @endif
                             </td>
                         </tr>
                     @endforeach
