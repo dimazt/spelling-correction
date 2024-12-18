@@ -14,6 +14,8 @@
     <!-- Custom styles for this template-->
     <link href="{{asset('assets/css/sb-admin-2.min.css')}}" rel="stylesheet">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
     <style>
         .background-gradient {
             background: linear-gradient(to bottom, #2c73d2, #0081cf, #0089ba);
@@ -58,11 +60,19 @@
             text-align: left;
             /* Align teks ke kiri */
         }
+
+        #suggestions {
+            border: 1px solid red;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #fff3f3;
+            /* Warna latar belakang */
+        }
     </style>
 </head>
 
 <body>
-    <div class="container p-3 shadow" style="background-color: #d4e5ed;">
+    <div class="container-fluid p-3 shadow" style="background-color: #d4e5ed;">
         <header>
             <!-- JUDUL -->
             <div class="background-gradient p-2">
@@ -106,316 +116,16 @@
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
     crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function () {
-        $('#extract-button').click(function () {
-            extract()
-        });
-    });
-    $(document).ready(function () {
-        $('#save-knn').click(function () {
-            let knn = $('#knn-value').val()
-            console.log(knn);
-            $.ajax({
-                url: '/save-knn',
-                type: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                data: JSON.stringify({ k_value: knn }),
 
-                success: function (response) {
-                    console.log(response);
-
-                }
-            });
-        });
-    });
-
-    $(document).ready(function () {
-        $('#fileInput').change(function (event) {
-            var file = event.target.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    $('#previewImage').attr('src', e.target.result);
-                    userRole = JSON.parse(localStorage.getItem('user'));
-                    if (userRole.role === 'user') {
-                        extract();
-                        identify();
-                    }
-
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    });
-
-    $(document).ready(function () {
-        $('#identifyBtn').click(function () {
-            identify()
-        });
-    });
-
-    $.ajax({
-        url: '/is-login',
-        type: 'GET',
-        success: function (response) {
-            console.log(response);
-            var navbar = $('#navbar')
-            if (!response.isLogin) {
-                navbar.remove()
-            }
-            if (response.user && response.user.role == 'user') {
-                $('.adminOnly').remove()
-            }
-            if (response.user) {
-                localStorage.setItem('user', JSON.stringify(response.user))
-                $('#namaUser').text(response.user.fullname)
-            }
-        }
-    });
-    function extract() {
-        var formData = new FormData();
-        formData.append('test_file', $('input[name="test_file"]')[0].files[0]);
-        $.ajax({
-            url: '/ekstraksi', // Ganti dengan endpoint API yang sesuai
-            type: 'POST',
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function (response) {
-                var tbody = $('#feature-table-body');
-                tbody.empty(); // Kosongkan tabel
-
-                $.each(response.features, function (index, feature) {
-                    tbody.append('<tr><td>' + (index + 1) + '</td><td>' + feature.name + '</td><td>' + feature.value + '</td></tr>');
-                });
-                $('#processed-image').attr('src', response.image_url);
-            },
-            error: function (error) {
-                console.log('Error:', error);
-            }
-        });
-    }
-
-
-    function identify() {
-        var formData = new FormData($('#identificationForm')[0]);
-        $.ajax({
-            url: '/identifikasi',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-
-                if (response.result === "Berformalin") {
-                    $('#resultCard').removeClass('border-bottom-success')
-                        .addClass('border-bottom-danger')
-                        .show();
-                    $('#resultText').text("Daging Ayam Berformalin");
-                } else {
-                    $('#resultCard').removeClass('border-bottom-danger')
-                        .addClass('border-bottom-success')
-                        .show();
-                    $('#resultText').text("Daging Ayam Tidak Berformalin");
-                }
-            },
-            error: function () {
-                alert("An error occurred. Please try again.");
-            }
-        });
-    }
-
-    $(document).ready(function () {
-        $()
-        $('#trainBtn').click(function () {
-            var formData = new FormData($('#trainingForm')[0]);
-            $.ajax({
-                url: '/training-model',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    console.log(response);
-                    $('#progressContainer').show();
-                    checkProgress();
-                },
-                error: function () {
-                    alert('An error occurred during training.');
-                    $('#progressContainer').hide();
-                }
-            });
-        });
-        $('#trainingForm').submit(function (event) {
-            event.preventDefault(); // Mencegah pengiriman formulir secara default
-        });
-        function checkProgress() {
-            var button = $('#trainBtn')
-            button.addClass('disabled');
-            $.ajax({
-                url: '/training-status',
-                type: 'GET',
-                success: function (response) {
-                    console.log('check' + response); // Tambahkan log untuk debugging
-                    var progress = response.percentage;
-                    $('#progressBar').css('width', progress + '%').text(progress + '%');
-
-                    if (response.status === 'completed') {
-                        alert('Training complete!');
-                        $('#progressContainer').hide();
-                        button.removeClass('disabled');
-                    } else {
-                        button.click(false)
-                        setTimeout(checkProgress, 1000); // Check progress every second
-                    }
-                }
-            });
-        }
-
-    });
-
-
-    document.getElementById('formalinImageInput').addEventListener('change', function (event) {
-        const files = event.target.files;
-        const previewContainer = document.getElementById('previewContainerFormalin');
-        const defaultImage = document.getElementById('defaultImageFormalin');
-
-        // Clear any previous preview images, including the default image
-        previewContainer.innerHTML = '';
-
-        if (files.length === 1) {
-            // If only one image, use the default image style
-            const file = files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    defaultImage.src = e.target.result;
-                    defaultImage.style.height = '360px'
-                    defaultImage.style.width = '520px'
-                    defaultImage.style.objectFit = 'cover'
-                    previewContainer.appendChild(defaultImage);
-                }
-                reader.readAsDataURL(file);
-            }
-        } else if (files.length > 1) {
-            previewContainer.style.display = 'grid'
-            previewContainer.style.gridTemplateColumns = 'repeat(3, 1fr)'
-            previewContainer.style.gridGap = '10px'
-            previewContainer.style.padding = '5px'
-
-
-            // If more than one image, create a grid
-            for (let i = 0; i < Math.min(files.length, 8); i++) {
-                const file = files[i];
-                if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.style.height = '120px';
-                        img.style.objectFit = 'cover';
-                        img.classList.add('border', 'rounded');
-                        img.alt = 'Gambar Tidak Muncul';
-                        img.classList.add('previewContainerImage');
-                        previewContainer.appendChild(img);
-                    }
-                    reader.readAsDataURL(file);
-                }
-            }
-            // If there are more than 9 images, add the +more overlay
-            if (files.length > 9) {
-                const moreDiv = document.createElement('div');
-                moreDiv.id = 'moreOverlay';
-                moreDiv.style.height = '120px';
-                moreDiv.style.objectFit = 'cover';
-                moreDiv.classList.add('border', 'rounded');
-                moreDiv.innerHTML = `<span>+${files.length - 9} more</span>`;
-
-                previewContainer.appendChild(moreDiv);
-            }
-        } else {
-            // If no images selected, show default image
-            previewContainer.appendChild(defaultImage);
-        }
-    });
-
-    document.getElementById('nonFormalinImageInput').addEventListener('change', function (event) {
-        const files = event.target.files;
-        const previewContainer = document.getElementById('previewContainerNonFormalin');
-        const defaultImage = document.getElementById('defaultImageNonFormalin');
-
-        // Clear any previous preview images, including the default image
-        previewContainer.innerHTML = '';
-
-        if (files.length === 1) {
-            // If only one image, use the default image style
-            const file = files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    defaultImage.src = e.target.result;
-                    defaultImage.style.height = '360px'
-                    defaultImage.style.width = '520px'
-                    defaultImage.style.objectFit = 'cover'
-                    previewContainer.appendChild(defaultImage);
-                }
-                reader.readAsDataURL(file);
-            }
-        } else if (files.length > 1) {
-            previewContainer.style.display = 'grid'
-            previewContainer.style.gridTemplateColumns = 'repeat(3, 1fr)'
-            previewContainer.style.gridGap = '10px'
-            previewContainer.style.padding = '5px'
-
-
-            // If more than one image, create a grid
-            for (let i = 0; i < Math.min(files.length, 8); i++) {
-                const file = files[i];
-                if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.style.height = '120px';
-                        img.style.objectFit = 'cover';
-                        img.classList.add('border', 'rounded');
-                        img.alt = 'Gambar Tidak Muncul';
-                        img.classList.add('previewContainerImage');
-                        previewContainer.appendChild(img);
-                    }
-                    reader.readAsDataURL(file);
-                }
-            }
-            // If there are more than 9 images, add the +more overlay
-            if (files.length > 9) {
-                const moreDiv = document.createElement('div');
-                moreDiv.id = 'moreOverlay';
-                moreDiv.style.height = '120px';
-                moreDiv.style.objectFit = 'cover';
-                moreDiv.classList.add('border', 'rounded');
-                moreDiv.innerHTML = `<span>+${files.length - 9} more</span>`;
-
-                previewContainer.appendChild(moreDiv);
-            }
-        } else {
-            // If no images selected, show default image
-            previewContainer.appendChild(defaultImage);
-        }
-    });
-
-</script>
 
 <script src="https://cdn.datatables.net/2.1.7/js/dataTables.js"></script>
 <script>
-    $(document).ready(function () {
-        // $('#datatable').DataTable();
-        let newTable = new DataTable('#datatable', {
-            responsive: true
-        })
-    });
+    // $(document).ready(function () {
+    //     // $('#datatable').DataTable();
+    //     let newTable = new DataTable('#datatable', {
+    //         responsive: true
+    //     })
+    // });
 </script>
 
 </html>

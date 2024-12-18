@@ -68,7 +68,7 @@ class SpellingCorrection2Controller extends Controller
 
 
 
-        return view("home_page", [
+        return view("home2", [
             'active_page' => $layout,
             'data' => $spellingCorrection
         ]);
@@ -83,6 +83,7 @@ class SpellingCorrection2Controller extends Controller
 
         // Simpan file PDF ke dalam storage (storage/app/pdf)
         $file = $request->file('pdf');
+        $fileSize = $file->getSize();
 
         // Mengambil nama asli file
         $originalFileName = $file->getClientOriginalName();
@@ -93,7 +94,8 @@ class SpellingCorrection2Controller extends Controller
             'name' => $originalFileName,
             'status' => 'waiting',
             'type' => $request->type == "training" ? "training" : "testing",
-            'user_id' => $user->id
+            'user_id' => $user->id,
+            'file_size' => $fileSize / (1024 * 1024)
         ]);
         $pdfText = $this->extractTextFromPdf($filePath);
 
@@ -184,6 +186,75 @@ class SpellingCorrection2Controller extends Controller
     {
         $pdfFullPath = Storage::path($filePath);
         return Pdf::getText($pdfFullPath, env('PDF_TO_TEXT', null));
+    }
+
+    public function getData(Request $request)
+    {
+        $type = "testing";
+        $layout = "home";
+        $activePage = $request->active_page;
+        if ($request->path() == "training") {
+            $type = "training";
+            $layout = "training";
+        }
+
+        $status = (object) [
+            "done" => (object) [
+                "status" => "Selesai",
+                "label" => "success"
+            ],
+            "failed" => (object) [
+                "status" => "Gagal",
+                "label" => "danger"
+            ],
+            "processing" => (object) [
+                "status" => "Sedang Diproses",
+                "label" => "primary"
+            ],
+            "waiting" => (object) [
+                "status" => "Menunggu Diproses",
+                "label" => "primary"
+            ]
+        ];
+
+        $user = auth()->user();
+        $spellingCorrection = SpellingCorrection::where('user_id', $user->id)->where('type', $type)->orderByDesc('updated_at')->get();
+
+        $spellingCorrection->transform(function ($item) use ($status) {
+            $item->is_enable = $item->status === "done" ? true : false;
+            $transform_status = isset($status->{$item->status}) ? $status->{$item->status} : $status->failed;
+            $item->status = $transform_status->status;
+            $item->label = $transform_status->label;
+            $item->result = $item->result ? basename($item->result) : '#';
+            $item->upload_date = $item->created_at->format('d-m-Y H:i:s');
+            $item->completed_date = $item->updated_at->format('d-m-Y H:i:s');
+            $item->file_size = $item->file_size ? "$item->file_size MB" : null;
+            return $item;
+        });
+
+
+        return datatables()->of($spellingCorrection)
+            ->addIndexColumn()
+            ->addColumn('status', function ($row) {
+                $badgeClass = match ($row->status) {
+                    'Selesai' => 'badge-success',
+                    'Sedang Diproses' => 'badge-primary',
+                    'Menunggu Diproses' => 'badge-primary',
+                    'Gagal' => 'badge-danger',
+                    default => 'badge-primary',
+                };
+                return '<span class="badge ' . $badgeClass . '">' . $row->status . '</span>';
+            })
+            ->addColumn('action', function ($row) use ($activePage) {
+                $buttons = '<a href="/download/' . $row->result . '" class="btn btn-sm btn-success mr-1 btn-icon-split"><span class="icon text-white-60"><i class="fas fa-download"></i></span></a>';
+                if ($activePage == "training") {
+                    $buttons .= '<a href="' . route('correction.detail', ['id' => $row->id]) . '" class="btn btn-sm btn-warning mr-1 btn-icon-split"><span class="icon text-white-60"><i class="fas fa-edit"></i></span></a>';
+                    $buttons .= '<a href="#" class="btn btn-sm btn-danger btn-icon-split"><span class="icon text-white-60"><i class="fas fa-trash"></i></span></a>';
+                }
+                return $buttons;
+            })
+            ->rawColumns(['action', 'status'])
+            ->make(true);
     }
 
 

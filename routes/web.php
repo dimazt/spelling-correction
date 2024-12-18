@@ -48,4 +48,5 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::get('/corection-detail/{id}', [SpellingCorrection2Controller::class, 'detail'])->name('correction.detail');
     Route::post('/corection-update', [SpellingCorrection2Controller::class, 'editCorrection'])->name('correction.update');
+    Route::get('/correction-result', [SpellingCorrection2Controller::class, 'getData'])->name('correction.result');
 });
